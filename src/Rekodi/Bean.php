@@ -44,7 +44,7 @@ abstract class Bean implements \IteratorAggregate
 		{
 			$this->set($attributes);
 		}
-		$this->_originals = $this->_attributes;
+		$this->markAsClean();
 	}
 
 	/**
@@ -132,6 +132,14 @@ abstract class Bean implements \IteratorAggregate
 	/**
 	 *
 	 */
+	final function markAsClean()
+	{
+		$this->_originals = $this->_attributes;
+	}
+
+	/**
+	 *
+	 */
 	function set(array $attributes)
 	{
 		$this->_attributes =
@@ -149,5 +157,5 @@ abstract class Bean implements \IteratorAggregate
 	/**
 	 * @var array
 	 */
-	private $_originals;
+	private $_originals = array();
 }

@@ -2,6 +2,8 @@
 
 Rekodi is small data management library.
 
+__Rekodi is currently under development and may be subject to important bugs.__
+
 ## Installation
 
 1. Download the code, you may either use git `git clone git://github.com/vatesfr/rekodi` or download a [Zip archive](https://github.com/vatesfr/rekodi/archive/master.zip).
