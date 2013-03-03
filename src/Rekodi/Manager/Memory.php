@@ -33,6 +33,17 @@ final class Memory extends ManagerAbstract
 	/**
 	 *
 	 */
+	static function createFromState(array $state)
+	{
+		$memory = new static;
+		$memory->_entries = $state;
+
+		return $memory;
+	}
+
+	/**
+	 *
+	 */
 	function __construct()
 	{
 		parent::__construct();
@@ -109,6 +120,15 @@ final class Memory extends ManagerAbstract
 		}
 		return $n;
 	}
+
+	/**
+	 * @return array
+	 */
+	function getState()
+	{
+		return $this->_entries;
+	}
+
 
 	/**
 	 *
