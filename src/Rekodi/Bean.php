@@ -38,11 +38,11 @@ abstract class Bean implements \IteratorAggregate
 	/**
 	 *
 	 */
-	final function __construct(array $attributes = null)
+	final function __construct(array $properties = null)
 	{
-		if ($attributes)
+		if ($properties)
 		{
-			$this->set($attributes);
+			$this->set($properties);
 		}
 		$this->markAsClean();
 	}
@@ -58,8 +58,8 @@ abstract class Bean implements \IteratorAggregate
 	 */
 	function __get($name)
 	{
-		if (!isset($this->_attributes[$name])
-		    && !array_key_exists($name, $this->_attributes))
+		if (!isset($this->_properties[$name])
+		    && !array_key_exists($name, $this->_properties))
 		{
 			trigger_error(
 				'no such readable property: '.get_class($this).'->'.$name,
@@ -67,7 +67,7 @@ abstract class Bean implements \IteratorAggregate
 			);
 		}
 
-		return $this->_attributes[$name];
+		return $this->_properties[$name];
 	}
 
 	/**
@@ -75,8 +75,8 @@ abstract class Bean implements \IteratorAggregate
 	 */
 	function __isset($name)
 	{
-		return (isset($this->_attributes[$name])
-		        || array_key_exists($name, $this->_attributes));
+		return (isset($this->_properties[$name])
+		        || array_key_exists($name, $this->_properties));
 	}
 
 	/**
@@ -95,32 +95,37 @@ abstract class Bean implements \IteratorAggregate
 
 		// @todo Handle validators.
 
-		$this->_attributes[$name] = $value;
+		$this->_properties[$name] = $value;
 	}
 
 	/**
 	 * Returns the dirty properties.
+	 *
+	 * Dirty properties are the properties which have a different
+	 * value than their original one.
 	 *
 	 * @return array
 	 */
 	final function getDirty()
 	{
 		return array_diff_assoc(
-			$this->_attributes,
+			$this->_properties,
 			$this->_originals
 		);
 	}
 
 	/**
-	 * @return \ArrayIterator
+	 * Returns all properties as an array.
+	 *
+	 * @return array
 	 */
-	final function getIterator()
+	final function getProperties()
 	{
-		return new \ArrayIterator($this->_attributes);
+		return $this->_properties;
 	}
 
 	/**
-	 * Returns original values.
+	 * Returns all properties with their original values.
 	 *
 	 * @return array
 	 */
@@ -130,21 +135,33 @@ abstract class Bean implements \IteratorAggregate
 	}
 
 	/**
-	 *
+	 * Mark all properties as clean.
 	 */
 	final function markAsClean()
 	{
-		$this->_originals = $this->_attributes;
+		$this->_originals = $this->_properties;
 	}
 
 	/**
 	 *
 	 */
-	function set(array $attributes)
+	function set(array $properties)
 	{
-		$this->_attributes =
-			array_intersect_key($attributes, static::$_fields)
-			+ $this->_attributes;
+		$this->_properties =
+			array_intersect_key($properties, static::$_fields)
+			+ $this->_properties;
+	}
+
+	//--------------------------------------
+	// IteratorAggregate
+	//--------------------------------------
+
+	/**
+	 * @return \ArrayIterator
+	 */
+	final function getIterator()
+	{
+		return new \ArrayIterator($this->_properties);
 	}
 
 	//--------------------------------------
@@ -152,7 +169,7 @@ abstract class Bean implements \IteratorAggregate
 	/**
 	 * @var array
 	 */
-	private $_attributes = array();
+	private $_properties = array();
 
 	/**
 	 * @var array
