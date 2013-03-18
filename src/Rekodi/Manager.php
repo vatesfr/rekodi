@@ -30,6 +30,9 @@ interface Manager
 {
 	/**
 	 * @param array[] $entries
+	 *
+	 * @return array[] For each entries an array with (at least)
+	 *     generated properties.
 	 */
 	function create(array $entries);
 
@@ -41,7 +44,7 @@ interface Manager
 	function delete(array $filter);
 
 	/**
-	 * @param array $filter
+	 * @param array $filter Properties that must match.
 	 * @param array $fields The name of the fields to get, “null” for
 	 *     everything.
 	 *
@@ -50,6 +53,7 @@ interface Manager
 	function get(array $filter = null, array $fields = null);
 
 	/**
+	 * @param array $filter Properties that must match.
 	 * @param array[] $properties
 	 *
 	 * @return integer The number of updated entries.
