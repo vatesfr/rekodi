@@ -23,20 +23,26 @@
 
 namespace Rekodi\Manager;
 
-use Rekodi\Manager\ManagerAbstract;
+use Rekodi\Table;
 
 /**
- *
+ * @todo Use exceptions when appropriate.
+ * @todo Check value type and nullity in create() and update().
+ * @todo Optimize research in using indexes in delete() get() and update().
  */
 final class Memory extends ManagerAbstract
 {
+	//--------------------------------------
+	// Instanciation.
+	//--------------------------------------
+
 	/**
 	 *
 	 */
 	static function createFromState(array $state)
 	{
 		$memory = new static;
-		$memory->_entries = $state;
+		$memory->_tables = $state;
 
 		return $memory;
 	}
@@ -49,12 +55,85 @@ final class Memory extends ManagerAbstract
 		parent::__construct();
 	}
 
+	//--------------------------------------
+	// Table manipulation.
+	//--------------------------------------
+
 	/**
 	 *
 	 */
-	function create(array $entries)
+	function createTable($name, $callback)
 	{
-		foreach ($entries as $entry)
+		if (isset($this->_tables[$name]))
+		{
+			trigger_error(
+				'there is already a table named '.$name,
+				E_USER_ERROR
+			);
+		}
+
+		$schema = new Table;
+		call_user_func($callback, $schema);
+
+		$table = &$this->_tables[$name];
+		$table = array(
+			'defaults'  => array(),
+			'fields'    => array(), // Whether the fields are nullable.
+			'uniques'   => array(),
+			'sequences' => array(),
+
+			'entries'   => array(),
+		);
+
+		foreach ($schema->getFields() as $name => $props)
+		{
+			$table['fields'][$name] = isset($props['nullable']);
+
+			if (isset($props['default']))
+			{
+				$table['defaults'][$name] = $props['default'];
+			}
+			elseif ($table['fields'][$name])
+			{
+				// If no default value and is nullable, default is null.
+				$table['defaults'][$name] = null;
+			}
+
+			if (isset($props['unique']))
+			{
+				$table['uniques'][$name] = array();
+			}
+
+			if (isset($props['auto-incremented']))
+			{
+				$table['sequences'][$name] = 0;
+			}
+		}
+	}
+
+	/**
+	 *
+	 */
+	function deleteTable($name)
+	{
+		// Checks existence.
+		$this->_getTable($name);
+
+		unset($this->_tables[$name]);
+	}
+
+	//--------------------------------------
+	// Data manipulation.
+	//--------------------------------------
+
+	/**
+	 *
+	 */
+	function create($tbl_name, array $entries)
+	{
+		$table = &$this->_getTable($tbl_name);
+
+		foreach ($entries as &$entry)
 		{
 			if (!is_array($entry))
 			{
@@ -63,21 +142,66 @@ final class Memory extends ManagerAbstract
 					E_USER_ERROR
 				);
 			}
-			$this->_entries[] = $entry;
+
+			// Default values.
+			$entry += $table['defaults'];
+
+			// Adds sequence values.
+			foreach ($table['sequences'] as $field => &$value)
+			{
+				if (!isset($entry[$field]))
+				{
+					$entry[$field] = $value++;
+				}
+			}
+			unset($value);
+
+			// Checks all fields are defined.
+			if (array_diff_key($table['fields'], $entry))
+			{
+				trigger_error(
+					'invalid entry',
+					E_USER_ERROR
+				);
+			}
+
+			// Inserts the entry and gets its internal id.
+			$table['entries'][] = $entry;
+			end($table['entries']);
+			$id = key($table['entries']);
+
+			// Checks unicity and updates indexes.
+			foreach ($table['uniques'] as $field => &$entries_)
+			{
+				$value = $entry[$field];
+				if (isset($entries_[$value]))
+				{
+					trigger_error(
+						"unique constraint violated for $tbl_name:$field ({$entry[$field]})",
+						E_USER_ERROR
+					);
+				}
+				$entries_[$value] = $id;
+			}
+			unset($entries_);
 		}
+
+		return $entries;
 	}
 
 	/**
 	 *
 	 */
-	function delete(array $filter)
+	function delete($table, array $filter)
 	{
+		$table = &$this->_getTable($table);
+
 		$n = 0;
-		foreach ($this->_entries as $key => $entry)
+		foreach ($table['entries'] as $key => $entry)
 		{
 			if ($this->_match($entry, $filter))
 			{
-				unset($this->_entries[$key]);
+				unset($table['entries'][$key]);
 				++$n;
 			}
 		}
@@ -87,12 +211,14 @@ final class Memory extends ManagerAbstract
 	/**
 	 *
 	 */
-	function get(array $filter = null, array $fields = null)
+	function get($table, array $filter = null, array $fields = null)
 	{
+		$table = &$this->_getTable($table);
+
 		$fields = $fields ? array_flip($fields) : false;
 
 		$entries = array();
-		foreach ($this->_entries as $entry)
+		foreach ($table['entries'] as $entry)
 		{
 			if (!$filter || $this->_match($entry, $filter))
 			{
@@ -107,10 +233,12 @@ final class Memory extends ManagerAbstract
 	/**
 	 *
 	 */
-	function update(array $filter, array $properties)
+	function update($table, array $filter, array $properties)
 	{
+		$table = &$this->_getTable($table);
+
 		$n = 0;
-		foreach ($this->_entries as &$entry)
+		foreach ($table['entries'] as &$entry)
 		{
 			if ($this->_match($entry, $filter))
 			{
@@ -121,25 +249,58 @@ final class Memory extends ManagerAbstract
 		return $n;
 	}
 
+	//--------------------------------------
+	// Various.
+	//--------------------------------------
+
 	/**
 	 * @return array
 	 */
 	function getState()
 	{
-		return $this->_entries;
+		return $this->_tables;
 	}
 
+	//--------------------------------------
+	// Internal stuff.
+	//--------------------------------------
 
 	/**
 	 *
 	 */
-	private $_entries = array();
+	private $_tables = array();
+
+	/**
+	 *
+	 */
+	private function &_getTable($name)
+	{
+		if (!isset($this->_tables[$name]))
+		{
+			trigger_error(
+				'no such table '.$name,
+				E_USER_ERROR
+			);
+		}
+
+		return $this->_tables[$name];
+	}
 
 	/**
 	 *
 	 */
 	private function _match(array $entry, array $filter)
 	{
-		return !array_diff_assoc($filter, $entry);
+		foreach ($filter as $key => $value)
+		{
+			if (!(
+				(isset($entry[$key]) || array_key_exists($key, $entry))
+				&& ($entry[$key] === $value)
+			))
+			{
+				return false;
+			}
+		}
+		return true;
 	}
 }

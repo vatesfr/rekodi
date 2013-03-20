@@ -28,10 +28,18 @@ use Rekodi\Filter;
 
 //--------------------------------------
 
-$albums = new Manager;
+$manager = new Manager;
+
+// Lets create a table.
+$manager->createTable('albums', function ($table) {
+	$table
+		->string('title')->unique()
+		->string('artist')
+		;
+});
 
 // Let's create a bunch of entries.
-$albums->create(array(
+$manager->create('albums', array(
 	array(
 		'title'  => 'Back in Black',
 		'artist' => 'AC/DC',
@@ -46,8 +54,9 @@ $albums->create(array(
 	),
 ));
 
-// We can search all Michael Jackson albums.
-$results = $albums->get(
+// We can search all Michael Jackson manager.
+$results = $manager->get(
+	'albums',
 	array('artist' => 'Michael Jackson'), // Filter.
 	array('title')                        // Fields.
 );
@@ -56,7 +65,8 @@ print_r($results);
 echo "----\n";
 
 // We can update an entry.
-$n = $albums->update(
+$n = $manager->update(
+	'albums',
 	array('title' => 'Back in Black'), // Filter.
 	array('date'  => '1980-07-25')     // New properties.
 );
@@ -64,7 +74,8 @@ echo "$n album(s) updated.\n";
 echo "----\n";
 
 // We can delete everything.
-$n = $albums->delete(
+$n = $manager->delete(
+	'albums',
 	array() // Filter.
 );
 echo "$n album(s) deleted.\n";

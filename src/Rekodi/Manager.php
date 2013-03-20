@@ -28,35 +28,66 @@ namespace Rekodi;
  */
 interface Manager
 {
+
+	//--------------------------------------
+	// Table manipulation.
+	//--------------------------------------
+
 	/**
+	 * @param string $name
+	 * @param callable $callback
+	 */
+	function createTable($name, $callback);
+
+	/**
+	 * @param string $name
+	 */
+	function deleteTable($name);
+
+	/**
+	 * @param string $name
+	 *
+	 * @return Table
+	 */
+	//function getTable($name);
+
+	//--------------------------------------
+	// Data manipulation.
+	//--------------------------------------
+
+	/**
+	 * @param string  $table
 	 * @param array[] $entries
 	 *
 	 * @return array[] For each entries an array with (at least)
-	 *     generated properties.
+	 *     generated properties (defaults, auto-increments, etc.).
 	 */
-	function create(array $entries);
+	function create($table, array $entries);
 
 	/**
-	 * @param array $filter
+	 * @param string $table
+	 * @param array  $filter
 	 *
 	 * @return integer The number of deleted objets.
 	 */
-	function delete(array $filter);
+	function delete($table, array $filter);
 
 	/**
+	 * @param string $table
 	 * @param array $filter Properties that must match.
 	 * @param array $fields The name of the fields to get, “null” for
 	 *     everything.
 	 *
 	 * @return array[] The entries found.
 	 */
-	function get(array $filter = null, array $fields = null);
+	function get($table, array $filter = null, array $fields = null);
 
 	/**
+	 * @param string $table
 	 * @param array $filter Properties that must match.
 	 * @param array[] $properties
 	 *
 	 * @return integer The number of updated entries.
 	 */
-	function update(array $filter, array $properties);
+	function update($table, array $filter, array $properties);
 }
