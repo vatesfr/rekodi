@@ -24,7 +24,7 @@
 namespace Rekodi;
 
 /**
- *
+ * @todo Handle createOrUpdate
  */
 interface Manager
 {
@@ -50,6 +50,11 @@ interface Manager
 	 * @return Table
 	 */
 	//function getTable($name);
+
+	/**
+	 * @return string[]
+	 */
+	function getTables();
 
 	//--------------------------------------
 	// Data manipulation.

@@ -122,6 +122,14 @@ final class Memory extends ManagerAbstract
 		unset($this->_tables[$name]);
 	}
 
+	/**
+	 *
+	 */
+	function getTables()
+	{
+		return array_keys($this->_tables);
+	}
+
 	//--------------------------------------
 	// Data manipulation.
 	//--------------------------------------
@@ -196,6 +204,11 @@ final class Memory extends ManagerAbstract
 	{
 		$table = &$this->_getTable($table);
 
+		$uniques = array_intersect_key(
+			$filter,
+			$table['uniques']
+		);
+
 		$n = 0;
 		foreach ($table['entries'] as $key => $entry)
 		{
@@ -203,8 +216,21 @@ final class Memory extends ManagerAbstract
 			{
 				unset($table['entries'][$key]);
 				++$n;
+
+				/* If there were unique fields in the filter we can
+				 * stop now and update them.
+				 */
+				if ($uniques)
+				{
+					foreach ($uniques as $field => $value)
+					{
+						unset($table['uniques'][$field][$value]);
+					}
+					break;
+				}
 			}
 		}
+
 		return $n;
 	}
 
