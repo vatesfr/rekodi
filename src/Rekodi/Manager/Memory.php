@@ -209,23 +209,25 @@ final class Memory extends ManagerAbstract
 			$table['uniques']
 		);
 
+
+
 		$n = 0;
 		foreach ($table['entries'] as $key => $entry)
 		{
 			if ($this->_match($entry, $filter))
 			{
+				foreach ($table['uniques'] as $field => &$entries)
+				{
+					unset($entries[$entry[$field]]);
+				}
 				unset($table['entries'][$key]);
 				++$n;
 
 				/* If there were unique fields in the filter we can
-				 * stop now and update them.
+				 * stop now.
 				 */
 				if ($uniques)
 				{
-					foreach ($uniques as $field => $value)
-					{
-						unset($table['uniques'][$field][$value]);
-					}
 					break;
 				}
 			}
