@@ -30,7 +30,7 @@ use Rekodi\Table;
  * @todo Check value type and nullity in create() and update().
  * @todo Optimize research in using indexes in delete(), get() and update().
  */
-final class Memory extends ManagerAbstract
+class Memory extends ManagerAbstract
 {
 	//--------------------------------------
 	// Instanciation.
