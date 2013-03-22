@@ -147,9 +147,10 @@ abstract class Bean implements \IteratorAggregate
 	 */
 	function set(array $properties)
 	{
-		$this->_properties =
-			array_intersect_key($properties, static::$_fields)
-			+ $this->_properties;
+		foreach ($properties as $name => $value)
+		{
+			$this->__set($name, $value);
+		}
 	}
 
 	//--------------------------------------

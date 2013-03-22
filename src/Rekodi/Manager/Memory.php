@@ -28,7 +28,7 @@ use Rekodi\Table;
 /**
  * @todo Use exceptions when appropriate.
  * @todo Check value type and nullity in create() and update().
- * @todo Optimize research in using indexes in delete() get() and update().
+ * @todo Optimize research in using indexes in delete(), get() and update().
  */
 final class Memory extends ManagerAbstract
 {
