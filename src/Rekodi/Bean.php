@@ -38,13 +38,16 @@ abstract class Bean implements \IteratorAggregate
 	/**
 	 *
 	 */
-	final function __construct(array $properties = null)
+	final function __construct(
+		array $properties = null,
+		$ignore_nonexistent = null
+	)
 	{
 		if ($properties)
 		{
-			$this->set($properties);
+			$this->set($properties, $ignore_nonexistent);
+			$this->markAsClean();
 		}
-		$this->markAsClean();
 	}
 
 	/**
@@ -145,8 +148,16 @@ abstract class Bean implements \IteratorAggregate
 	/**
 	 *
 	 */
-	function set(array $properties)
+	function set(array $properties, $ignore_nonexistent = false)
 	{
+		if ($ignore_nonexistent)
+		{
+			$properties = array_intersect_key(
+				$properties,
+				static::$_fields
+			);
+		}
+
 		foreach ($properties as $name => $value)
 		{
 			$this->__set($name, $value);
