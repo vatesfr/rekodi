@@ -61,6 +61,14 @@ interface Manager
 	//--------------------------------------
 
 	/**
+	 * @param string $table
+	 * @param array $filter Properties that must match.
+	 *
+	 * @return integer The number of entries matching this filter.
+	 */
+	function count($table, array $filter = null);
+
+	/**
 	 * @param string  $table
 	 * @param array[] $entries
 	 *
@@ -71,7 +79,7 @@ interface Manager
 
 	/**
 	 * @param string $table
-	 * @param array  $filter
+	 * @param array $filter Properties that must match.
 	 *
 	 * @return integer The number of deleted objets.
 	 */

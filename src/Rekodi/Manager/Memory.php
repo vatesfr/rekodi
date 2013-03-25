@@ -137,6 +137,30 @@ class Memory extends ManagerAbstract
 	/**
 	 *
 	 */
+	function count($table, array $filter = null)
+	{
+		$table = &$this->_getTable($table);
+
+		if (!$filter)
+		{
+			return count($table['entries']);
+		}
+
+
+		$n = 0;
+		foreach ($table['entries'] as $entry)
+		{
+			if ($this->_match($entry, $filter))
+			{
+				++$n;
+			}
+		}
+		return $n;
+	}
+
+	/**
+	 *
+	 */
 	function create($tbl_name, array $entries)
 	{
 		$table = &$this->_getTable($tbl_name);
